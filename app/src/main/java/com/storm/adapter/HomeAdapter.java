@@ -15,6 +15,8 @@ public class HomeAdapter extends BaseQuickAdapter<Result, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper, Result item) {
-        helper.setText(R.id.tv_result, item.content);
+        helper.setText(R.id.tv_result, item.content)
+                .addOnClickListener(R.id.btn_copy);
     }
+
 }
