@@ -29,26 +29,29 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.Toast;
 
-import com.storm.adapter.BarCodeAdapter;
+import com.storm.adapter.HomeAdapter;
 import com.storm.barcode.MultiBarcodeFactory;
 import com.storm.R;
+import com.storm.bean.Result;
 import com.storm.camera.CameraSource;
 import com.storm.camera.CameraSourcePreview;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.storm.constant.ResultType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public final class BarcodeCaptureActivity extends AppCompatActivity {
     private static final String TAG = "Barcode-reader";
@@ -63,35 +66,49 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
 
     private CameraSource mCameraSource;
     private CameraSourcePreview mPreview;
-    private Handler handler;
+    private ArrayList<Result> results;
+    private HomeAdapter mHomeAdapter;
+    private Handler mHandler = new Handler(message -> {
+        if (message.what == 1) {
+            String scanResult = message.obj.toString();
+            Result result = new Result(scanResult, ResultType.NORMAL);
+            if (!results.contains(result)) {
+                results.add(result);
+                if (mHomeAdapter != null) {
+                    mHomeAdapter.notifyDataSetChanged();
+                }
+            }
+        }
+        return false;
+    });
 
-    @SuppressLint("HandlerLeak")
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         setContentView(R.layout.barcode_capture);
-        BarCodeAdapter instance = BarCodeAdapter.getInstance();
-        handler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                if (msg.what == 1) {
-                    instance.notifyDataSetChanged();
-                }
-            }
-        };
-        instance.init(this, handler);
-        mPreview = findViewById(R.id.preview);
-        ListView listView = findViewById(R.id.listview);
-        listView.setAdapter(instance);
+        initVars();
+        createCamera();
+    }
+
+    private void createCamera() {
         boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
         boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
-
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
             createCameraSource(useFlash);
         } else {
             requestCameraPermission();
         }
+    }
+
+    private void initVars() {
+        results = new ArrayList<>();
+        mHomeAdapter = new HomeAdapter(R.layout.item_result, results);
+        mPreview = findViewById(R.id.preview);
+        RecyclerView scanResultShowView = findViewById(R.id.scan_result);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        scanResultShowView.setLayoutManager(layoutManager);
+        scanResultShowView.setAdapter(mHomeAdapter);
     }
 
     private void requestCameraPermission() {
@@ -104,7 +121,6 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
         final Activity thisActivity = this;
         View.OnClickListener listener = view -> ActivityCompat.requestPermissions(thisActivity, permissions,
                 RC_HANDLE_CAMERA_PERM);
-
         findViewById(R.id.topLayout).setOnClickListener(listener);
     }
 
@@ -114,7 +130,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
 
         BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context).build();
 
-        MultiBarcodeFactory objectMultiBarcodeFactory = new MultiBarcodeFactory();
+        MultiBarcodeFactory objectMultiBarcodeFactory = new MultiBarcodeFactory(mHandler);
         barcodeDetector.setProcessor(new MultiProcessor.Builder<>(objectMultiBarcodeFactory).build());
 
         if (!barcodeDetector.isOperational()) {

@@ -12,8 +12,8 @@
         android:layout_height="match_parent"
         android:layout_centerInParent="true" />
 
-    <ListView
-        android:id="@+id/listview"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/scan_result"
         android:layout_width="match_parent"
         android:layout_height="160dp"
         android:layout_alignParentBottom="true"
