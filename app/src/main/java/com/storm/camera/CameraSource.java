@@ -507,7 +507,7 @@ public class CameraSource {
     }
 
     /**
-     * Gets the current focus mode setting.
+     * Gets the current focus mode settings.
      *
      * @return current focus mode. This value is null if the camera is not yet created. Applications should call {@link
      * #autoFocus(AutoFocusCallback)} to start the focus if focus
@@ -550,9 +550,9 @@ public class CameraSource {
     }
 
     /**
-     * Gets the current flash mode setting.
+     * Gets the current flash mode settings.
      *
-     * @return current flash mode. null if flash mode setting is not
+     * @return current flash mode. null if flash mode settings is not
      * supported or the camera is not yet created.
      * @see Camera.Parameters#FLASH_MODE_OFF
      * @see Camera.Parameters#FLASH_MODE_AUTO
@@ -783,7 +783,7 @@ public class CameraSource {
             }
         }
 
-        // setting mFocusMode to the one set in the params
+        // settings mFocusMode to the one set in the params
         mFocusMode = parameters.getFocusMode();
 
         if (mFlashMode != null) {
@@ -797,7 +797,7 @@ public class CameraSource {
             }
         }
 
-        // setting mFlashMode to the one set in the params
+        // settings mFlashMode to the one set in the params
         mFlashMode = parameters.getFlashMode();
 
         camera.setParameters(parameters);
@@ -1156,7 +1156,7 @@ public class CameraSource {
          * switching or frame acquisition time latency.
          * <p/>
          * If you find that this is using more CPU than you'd like, you should probably decrease the
-         * FPS setting above to allow for some idle time in between frames.
+         * FPS settings above to allow for some idle time in between frames.
          */
         @Override
         public void run() {
