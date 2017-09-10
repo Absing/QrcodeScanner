@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,8 +35,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Toast;
 
@@ -43,8 +44,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.storm.App;
 import com.storm.R;
-import com.storm.adapter.HomeAdapter;
+import com.storm.adapter.ScanResultAdapter;
 import com.storm.barcode.MultiBarcodeFactory;
 import com.storm.bean.Result;
 import com.storm.camera.CameraSource;
@@ -55,8 +57,11 @@ import com.storm.constant.Scan;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public final class MainActivity extends AppCompatActivity {
+import io.objectbox.Box;
+import io.objectbox.BoxStore;
 
+public final class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
     private static final int RC_HANDLE_GMS = 9001;
 
     private static final int RC_HANDLE_CAMERA_PERM = 2;
@@ -68,38 +73,67 @@ public final class MainActivity extends AppCompatActivity {
     private CameraSource mCameraSource;
     private CameraSourcePreview mPreview;
     private ArrayList<Result> results;
-    private HomeAdapter mHomeAdapter;
+    private ScanResultAdapter mScanResultAdapter;
     private String mIntentAction;
-
+    private Box<Result> mResultBox;
     private Handler mHandler = new Handler(message -> {
         if (message.what == 1) {
             String scanResult = message.obj.toString();
+            Result result = new Result(scanResult, ResultType.NORMAL);
+
             if (Scan.ACTION.equals(mIntentAction)) {
                 Intent intent = new Intent();
                 intent.putExtra(Scan.RESULT, scanResult);
                 setResult(RESULT_OK, intent);
+                mResultBox.put(result);
                 finish();
                 return false;
             }
-            Result result = new Result(scanResult, ResultType.NORMAL);
             if (!results.contains(result)) {
                 results.add(result);
-                if (mHomeAdapter != null) {
-                    mHomeAdapter.notifyDataSetChanged();
+                mResultBox.put(result);
+                if (mScanResultAdapter != null) {
+                    mScanResultAdapter.notifyDataSetChanged();
                 }
             }
         }
         return false;
     });
 
+
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         setContentView(R.layout.activity_main);
+        mIntentAction = getIntent().getAction();
         initVars();
         createCamera();
-        mIntentAction = getIntent().getAction();
-        Log.e("------", "onCreate: " + mIntentAction);
+        initDrawer();
+        BoxStore boxStore = ((App) getApplication()).getBoxStore();
+        mResultBox = boxStore.boxFor(Result.class);
+    }
+
+    private void initDrawer() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setTitleTextColor(Color.WHITE);
+        toolbar.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.scan_history:
+                    startActivity(new Intent(MainActivity.this, HistoryActivity.class));
+                    break;
+                case R.id.about:
+                    startActivity(new Intent(MainActivity.this, AboutActivity.class));
+                    break;
+            }
+            return false;
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_toolbar, menu);
+        return true;
     }
 
     private void createCamera() {
@@ -113,16 +147,16 @@ public final class MainActivity extends AppCompatActivity {
 
     private void initVars() {
         results = new ArrayList<>();
-        mHomeAdapter = new HomeAdapter(R.layout.item_result, results);
+        mScanResultAdapter = new ScanResultAdapter(R.layout.item_result, results);
         mPreview = findViewById(R.id.preview);
         RecyclerView scanResultShowView = findViewById(R.id.scan_result);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         scanResultShowView.setLayoutManager(layoutManager);
-        scanResultShowView.setAdapter(mHomeAdapter);
-        mHomeAdapter.setOnItemChildClickListener((adapter, view, position) -> {
+        scanResultShowView.setAdapter(mScanResultAdapter);
+        mScanResultAdapter.setOnItemChildClickListener((adapter, view, position) -> {
             ClipboardManager clipboard = (ClipboardManager)
                     getSystemService(Context.CLIPBOARD_SERVICE);
-            String content = results.get(position).content;
+            String content = results.get(position).getContent();
             ClipData clipData = ClipData.newPlainText("com.storm", content);
             if (clipboard != null) {
                 clipboard.setPrimaryClip(clipData);
@@ -164,16 +198,16 @@ public final class MainActivity extends AppCompatActivity {
 
         CameraSource.Builder builder = new CameraSource.Builder(getApplicationContext(), barcodeDetector)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
-                .setRequestedPreviewSize(2624, 1968)
+                .setRequestedPreviewSize(2592, 4608)
                 .setRequestedFps(24.0f);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             builder = builder.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         }
-
         mCameraSource = builder
                 .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
                 .build();
+
     }
 
     /**

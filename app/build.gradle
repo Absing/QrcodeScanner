@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'io.objectbox'
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.1"
     defaultConfig {
-        applicationId "com.storm.camera"
+        applicationId "com.storm.scan"
         minSdkVersion 22
         targetSdkVersion 26
         versionCode 1
@@ -24,8 +24,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.android.support:support-v13:26.0.2'
     implementation 'com.google.android.gms:play-services-vision:11.2.2'
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.27'
     implementation 'com.android.support:recyclerview-v7:26.0.2'

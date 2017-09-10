@@ -12,3 +12,6 @@
 /settings.gradle
 /gradlew.bat
 /gradle.properties
+/library/
+app/objectbox-models/default.json
+app/objectbox-models/default.json.bak

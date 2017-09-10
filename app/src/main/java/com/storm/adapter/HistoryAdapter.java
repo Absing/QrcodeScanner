@@ -1,21 +1,22 @@
 package com.storm.adapter;
 
-import com.chad.library.adapter.base.BaseQuickAdapter;
+
+import com.chad.library.adapter.base.BaseItemDraggableAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 import com.storm.R;
 import com.storm.bean.Result;
 
 import java.util.List;
 
-public class HomeAdapter extends BaseQuickAdapter<Result, BaseViewHolder> {
+public class HistoryAdapter extends BaseItemDraggableAdapter<Result, BaseViewHolder> {
 
-    public HomeAdapter(int layoutResId, List<Result> data) {
-        super(layoutResId, data);
+    public HistoryAdapter(List<Result> data) {
+        super(R.layout.item_result, data);
     }
 
     @Override
     protected void convert(BaseViewHolder helper, Result item) {
-        helper.setText(R.id.tv_result, item.content)
+        helper.setText(R.id.tv_result, item.getContent())
                 .addOnClickListener(R.id.btn_copy);
     }
 

@@ -23,13 +23,13 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.RelativeLayout;
+import android.view.ViewGroup;
 
 import com.google.android.gms.common.images.Size;
 
 import java.io.IOException;
 
-public class CameraSourcePreview extends RelativeLayout {
+public class CameraSourcePreview extends ViewGroup {
     private static final String TAG = "CameraSourcePreview";
 
     private Context mContext;
@@ -49,7 +49,7 @@ public class CameraSourcePreview extends RelativeLayout {
         mSurfaceView = new SurfaceView(context);
         mSurfaceView.getHolder().addCallback(new SurfaceCallback());
         addView(mSurfaceView);
-        Log.e(TAG, "CameraSourcePreview: " + (mSurfaceView.getLayoutParams() == null));
+//        Log.e(TAG, "CameraSourcePreview: " + (mSurfaceView.getLayoutParams() == null));
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)

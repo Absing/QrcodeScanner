@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- item包含menu表示该menu是item下的子菜单 -->
+
+    <!-- 将group中的菜单项放于一个组里面 -->
+    <group>
+        <item
+            android:id="@+id/scan_history"
+            android:icon="@drawable/icon"
+            android:title="扫描历史"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/about"
+            android:icon="@drawable/icon"
+            android:title="关于"
+            app:showAsAction="never" />
+    </group>
+
+</menu>
